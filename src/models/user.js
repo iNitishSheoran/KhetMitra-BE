@@ -7,34 +7,88 @@ require('dotenv').config();
 
 const userSchema = new mongoose.Schema(
   {
-    firstName: { type: String, required: true, minLength: 3, maxLength: 20 },
-    lastName: { type: String },
+    fullName: {
+      type: String,
+      required: [true, "Full name is required"],
+      minlength: [3, "Full name must be at least 3 characters"],
+      maxlength: [50, "Full name cannot exceed 50 characters"],
+      trim: true,
+    },
+
+    phoneNumber: {
+      type: String,
+      required: [true, "Phone number is required"],
+      unique: true,
+      validate: {
+        validator: function (value) {
+          // ✅ Indian phone number validation: 10 digits, no country code
+          return /^[6-9]\d{9}$/.test(value);
+        },
+        message: "Invalid phone number format",
+      },
+    },
+
     emailId: {
       type: String,
-      required: true,
+      required: [true, "Email ID is required"],
       unique: true,
       lowercase: true,
       trim: true,
-      validate(value) {
-        if (!validator.isEmail(value)) {
-          throw new Error("Email is not valid");
-        }
+      validate: {
+        validator: function (value) {
+          return validator.isEmail(value);
+        },
+        message: "Invalid email format",
       },
     },
-    password: {
+
+     password: {
+    type: String,
+    required: true,
+    validate(value) {
+      if (!validator.isStrongPassword(value)) {
+        throw new Error("Enter a strong passwordddddd");
+      }
+    },
+  },
+
+    state: {
       type: String,
-      required: true,
-      validate(value) {
-        if (!validator.isStrongPassword(value)) {
-          throw new Error("Enter a strong password");
-        }
+      required: [true, "State is required"],
+      trim: true,
+      minlength: [2, "State name is too short"],
+    },
+
+    district: {
+      type: String,
+      required: [true, "District is required"],
+      trim: true,
+      minlength: [2, "District name is too short"],
+    },
+
+    crops: {
+      type: [String],
+      required: [true, "At least one crop is required"],
+      validate: {
+        validator: function (arr) {
+          return arr.length > 0;
+        },
+        message: "User must grow at least one crop",
       },
+    },
+
+    age: {
+      type: Number,
+      required: [true, "Age is required"],
+      min: [18, "Minimum age must be 18"],
+      max: [100, "Maximum age cannot exceed 100"],
     },
   },
   { timestamps: true }
 );
 
-userSchema.index({ firstName: 1, lastName: 1 });
+// ✅ Index for quick search by location + crop
+userSchema.index({ state: 1, district: 1, crops: 1 });
 
 // JWT generation
 userSchema.methods.getJWT = function () {

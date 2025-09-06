@@ -33,6 +33,9 @@ app.use("/crop", cropRouter);
 
 const cultivationRouter = require("./routes/cultivationRouter");
 app.use("/cultivation", cultivationRouter);
+
+const profileRouter = require("./routes/profileRouter");
+app.use("/profile", profileRouter);
 // ... other routers
 
 const PORT = process.env.PORT || 2713;
