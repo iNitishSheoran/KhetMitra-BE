@@ -9,7 +9,7 @@
     "dev": "nodemon src/app.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Nitish Sheoran",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -23,5 +23,13 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iNitishSheoran/KhetMitra-BE.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iNitishSheoran/KhetMitra-BE/issues"
+  },
+  "homepage": "https://github.com/iNitishSheoran/KhetMitra-BE#readme"
 }
