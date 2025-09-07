@@ -8,7 +8,10 @@ const { validateHelpData } = require("../utils/validation");
 // ✅ Submit Help Request (only logged-in farmers)
 helpRouter.post("/submit", userAuth, async (req, res) => {
   try {
+      console.log("helpData received:", req.body);
+    console.log("req.user:", req.user);
     const helpData = req.body;
+
 
     validateHelpData(helpData);
 
@@ -100,5 +103,34 @@ helpRouter.patch("/status/:id", userAuth, isAdmin, async (req, res) => {
     res.status(500).json({ error: "❌ Failed to update help request status" });
   }
 });
+
+
+// routes/helpRouter.js
+
+// ✅ Admin: Answer Help Request
+helpRouter.patch("/answer/:id", userAuth, isAdmin, async (req, res) => {
+  try {
+    const { answer } = req.body;
+    if (!answer || answer.trim().length < 5) {
+      return res.status(400).json({ error: "❌ Answer must be at least 5 characters long" });
+    }
+
+    const updatedHelp = await Help.findByIdAndUpdate(
+      req.params.id,
+      { answer, status: "resolved" }, // auto mark resolved
+      { new: true }
+    );
+
+    if (!updatedHelp) {
+      return res.status(404).json({ error: "❌ Help request not found" });
+    }
+
+    res.json({ message: "✅ Answer submitted and status updated", updatedHelp });
+  } catch (err) {
+    console.error("Error submitting answer:", err);
+    res.status(500).json({ error: "❌ Failed to submit answer" });
+  }
+});
+
 
 module.exports = helpRouter;

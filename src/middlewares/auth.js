@@ -24,8 +24,7 @@ const userAuth = async (req, res, next) => {
     req.user = {
       _id: user._id,
       emailId: user.emailId,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      fullName: user.fullName,
     };
 
     next();
