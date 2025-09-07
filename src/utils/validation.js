@@ -1,22 +1,80 @@
 const validator = require("validator");
 
-const validateSignUpData = (req) => {
+// ✅ Phone number validator (Indian, 10-digit starting with 6–9)
+const isValidPhoneNumber = (phone) => /^[6-9]\d{9}$/.test(phone);
 
-    const {firstName, lastName, emailId, password} = req.body;
+// ✅ Email validator (basic RFC 5322 compliant regex)
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-    if(!firstName || !lastName){
-        throw new Error("Please enter the name");
+// ✅ Signup validation
+const validateSignUpData = (data) => {
+  const requiredFields = [
+    "fullName",
+    "phoneNumber",
+    "emailId",
+    "state",
+    "district",
+    "crops",
+    "age",
+  ];
+
+  // Check missing fields
+  for (const field of requiredFields) {
+    if (!data[field]) {
+      return { error: { message: `${field} is required` } };
     }
-    else if(firstName.length < 3 || firstName.length > 20){
-        throw new Error("First name should be 2-20 characters");
+  }
+
+  // fullName
+  if (
+    typeof data.fullName !== "string" ||
+    data.fullName.trim().length < 3 ||
+    data.fullName.trim().length > 50
+  ) {
+    return {
+      error: {
+        message: "Full name must be 3–50 characters long",
+      },
+    };
+  }
+
+  // phoneNumber
+  if (!isValidPhoneNumber(data.phoneNumber)) {
+    return { error: { message: "Invalid phone number format" } };
+  }
+
+  // emailId
+  if (!isValidEmail(data.emailId)) {
+    return { error: { message: "Invalid email format" } };
+  }
+
+  // state
+  if (typeof data.state !== "string" || data.state.trim().length < 2) {
+    return { error: { message: "State name must be at least 2 characters long" } };
+  }
+
+  // district
+  if (typeof data.district !== "string" || data.district.trim().length < 2) {
+    return { error: { message: "District name must be at least 2 characters long" } };
+  }
+
+  // crops (must be array with at least 1 string crop)
+  if (!Array.isArray(data.crops) || data.crops.length === 0) {
+    return { error: { message: "At least one crop must be provided" } };
+  }
+  for (const crop of data.crops) {
+    if (typeof crop !== "string" || crop.trim().length < 2) {
+      return { error: { message: "Each crop must be a valid string (min 2 chars)" } };
     }
-    else if(!validator.isEmail(emailId)){
-        throw new Error("Email id is not valid");
-    }
-    else if(!validator.isStrongPassword(password)){
-        throw new Error("Enter a strong password");
-    }
-}
+  }
+
+  // age
+  if (typeof data.age !== "number" || data.age < 18 || data.age > 100) {
+    return { error: { message: "Age must be between 18 and 100" } };
+  }
+
+  return { error: null }; // ✅ Valid
+};
 
 
 const validateCropData = (crop) => {
@@ -198,12 +256,79 @@ const validateCultivationData = (data) => {
   return true;
 };
 
-module.exports = validateCultivationData;
+
+const validateProfileEditData = (data) => {
+  const allowedFields = ["fullName", "phoneNumber", "state", "district", "crops", "age"];
+  const keys = Object.keys(data);
+
+  if (keys.length === 0) {
+    return { error: { message: "At least one field is required" } };
+  }
+
+  for (const key of keys) {
+    if (!allowedFields.includes(key)) {
+      return { error: { message: `Invalid field: ${key}` } };
+    }
+
+    const value = data[key];
+
+    switch (key) {
+      case "fullName":
+        if (typeof value !== "string" || value.trim().length < 3 || value.trim().length > 50) {
+          return { error: { message: "Full name must be 3–50 characters long" } };
+        }
+        break;
+
+      case "phoneNumber":
+        if (!/^[0-9]{10}$/.test(value)) {
+          return { error: { message: "Phone number must be a valid 10-digit number" } };
+        }
+        break;
+
+      case "state":
+        if (typeof value !== "string" || value.trim().length < 2) {
+          return { error: { message: "State name must be at least 2 characters" } };
+        }
+        break;
+
+      case "district":
+        if (typeof value !== "string" || value.trim().length < 2) {
+          return { error: { message: "District name must be at least 2 characters" } };
+        }
+        break;
+
+      case "crops":
+        if (!Array.isArray(value) || value.length === 0) {
+          return { error: { message: "At least one crop must be provided" } };
+        }
+        for (const crop of value) {
+          if (typeof crop !== "string" || crop.trim().length < 2) {
+            return { error: { message: "Each crop must be a valid string (min 2 chars)" } };
+          }
+        }
+        break;
+
+      case "age":
+        if (typeof value !== "number" || value < 18 || value > 100) {
+          return { error: { message: "Age must be between 18 and 100" } };
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  return { error: null };
+};
+
+
 
 
 module.exports = {
     validateSignUpData,
     validateCropData,
     validateHelpData,
-    validateCultivationData
+    validateCultivationData,
+    validateProfileEditData
 }

@@ -11,10 +11,10 @@ const getCookieOptions = () => {
   const isProd = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    secure: isProd, // true in production (HTTPS), false in local dev
-    sameSite: isProd ? "None" : "Lax", // None required for cross-site in prod
+    secure: isProd,
+    sameSite: isProd ? "None" : "Lax",
     path: "/",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (match JWT expiry)
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
 };
 
@@ -23,10 +23,22 @@ authRouter.post("/signup", async (req, res) => {
   try {
     validateSignUpData(req);
 
-    const { firstName, lastName, emailId, password } = req.body;
+    const { fullName, phoneNumber, emailId, password, state, district, crops, age } = req.body;
+
+    // ✅ Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const user = new User({ firstName, lastName, emailId, password: passwordHash });
+    const user = new User({
+      fullName,
+      phoneNumber,
+      emailId,
+      password: passwordHash,
+      state,
+      district,
+      crops,
+      age,
+    });
+
     const savedUser = await user.save();
 
     const token = await savedUser.getJWT();
@@ -34,16 +46,21 @@ authRouter.post("/signup", async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "User added successfully",
+      message: "User registered successfully",
       user: {
         _id: savedUser._id,
-        firstName: savedUser.firstName,
-        lastName: savedUser.lastName,
+        fullName: savedUser.fullName,
+        phoneNumber: savedUser.phoneNumber,
         emailId: savedUser.emailId,
+        state: savedUser.state,
+        district: savedUser.district,
+        crops: savedUser.crops,
+        age: savedUser.age,
       },
     });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message || "Error saving the user" });
+    console.error("❌ Signup Error:", err);
+    res.status(400).json({ success: false, message: err.message || "Error signing up" });
   }
 });
 
@@ -56,7 +73,7 @@ authRouter.post("/login", async (req, res) => {
     if (!user) throw new Error("Invalid credentials");
 
     const isPasswordValid = await user.validatePassword(password);
-    if (!isPasswordValid) throw new Error("Incorrect Password");
+    if (!isPasswordValid) throw new Error("Incorrect password");
 
     const token = await user.getJWT();
     res.cookie("token", token, getCookieOptions());
@@ -66,12 +83,17 @@ authRouter.post("/login", async (req, res) => {
       message: "Login successful",
       user: {
         _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        fullName: user.fullName,
+        phoneNumber: user.phoneNumber,
         emailId: user.emailId,
+        state: user.state,
+        district: user.district,
+        crops: user.crops,
+        age: user.age,
       },
     });
   } catch (err) {
+    console.error("❌ Login Error:", err);
     res.status(400).json({ success: false, message: err.message || "Error logging in" });
   }
 });
@@ -79,19 +101,18 @@ authRouter.post("/login", async (req, res) => {
 // GET CURRENT USER (protected)
 authRouter.get("/user", userAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select("firstName lastName emailId");
+    const user = await User.findById(req.user._id).select("-password");
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
     const isAdmin = user.emailId === process.env.ADMIN_EMAIL;
 
     res.json({
       success: true,
-      fullName: `${user.firstName} ${user.lastName || ""}`.trim(),
-      emailId: user.emailId,
-      profileImage: null,
+      user,
       isAdmin,
     });
   } catch (err) {
+    console.error("❌ Fetch User Error:", err);
     res.status(500).json({ success: false, message: "Failed to fetch user" });
   }
 });
