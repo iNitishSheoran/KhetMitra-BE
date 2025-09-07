@@ -4,6 +4,11 @@ const User = require("../models/user");
 const { userAuth } = require("../middlewares/auth");
 const { validateProfileEditData } = require("../utils/validation");
 
+// Multer + Cloudinary config
+const multer = require("multer");
+const { storage } = require("../utils/cloudinary");
+const upload = multer({ storage });
+
 // =======================
 // ✅ Get profile API
 // =======================
@@ -22,38 +27,63 @@ profileRouter.get("/view", userAuth, async (req, res) => {
 });
 
 // =======================
-// ✅ Edit profile API
+// ✅ Edit profile API (with optional profile photo upload)
 // =======================
-profileRouter.patch("/edit", userAuth, async (req, res) => {
-  try {
-    const updates = req.body || {};
+// ✅ Edit profile API (with optional profile photo upload)
+profileRouter.patch(
+  "/edit",
+  userAuth,
+  upload.single("profilePhoto"),
+  async (req, res) => {
+    try {
+      const updates = { ...req.body };
 
-    // ✅ Validate input
-    const { error } = validateProfileEditData(updates);
-    if (error) {
-      return res.status(400).json({ message: error.message });
+      // ✅ If file uploaded → update photoUrl
+      if (req.file && req.file.path) {
+        updates.photoUrl = req.file.path;
+      }
+
+      // ✅ Convert age to number if provided
+      if (updates.age) {
+        updates.age = Number(updates.age);
+      }
+
+      // ✅ Convert crops to array if string
+      if (updates.crops && typeof updates.crops === "string") {
+        updates.crops = updates.crops
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
+      }
+
+      // ✅ Validate input
+      const { error } = validateProfileEditData(updates);
+      if (error) {
+        return res.status(400).json({ message: error.message });
+      }
+
+      // ✅ Apply updates safely
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: updates },
+        { new: true, runValidators: true }
+      ).select("-__v");
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.status(200).json({
+        message: "Profile updated successfully",
+        user: updatedUser,
+      });
+    } catch (err) {
+      console.error("❌ Edit Profile Error:", err);
+      res.status(500).json({ message: "Internal server error" });
     }
-
-    // ✅ Apply updates safely
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      { $set: updates },
-      { new: true, runValidators: true }
-    ).select("-__v");
-
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.status(200).json({
-      message: "Profile updated successfully",
-      user: updatedUser,
-    });
-  } catch (err) {
-    console.error("❌ Edit Profile Error:", err);
-    res.status(500).json({ message: "Internal server error" });
   }
-});
+);
+
 
 // =======================
 // ✅ Delete profile API

@@ -258,7 +258,16 @@ const validateCultivationData = (data) => {
 
 
 const validateProfileEditData = (data) => {
-  const allowedFields = ["fullName", "phoneNumber", "state", "district", "crops", "age"];
+  const allowedFields = [
+    "fullName",
+    "phoneNumber",
+    "state",
+    "district",
+    "crops",
+    "age",
+    "photoUrl",
+  ];
+
   const keys = Object.keys(data);
 
   if (keys.length === 0) {
@@ -274,7 +283,11 @@ const validateProfileEditData = (data) => {
 
     switch (key) {
       case "fullName":
-        if (typeof value !== "string" || value.trim().length < 3 || value.trim().length > 50) {
+        if (
+          typeof value !== "string" ||
+          value.trim().length < 3 ||
+          value.trim().length > 50
+        ) {
           return { error: { message: "Full name must be 3–50 characters long" } };
         }
         break;
@@ -309,8 +322,15 @@ const validateProfileEditData = (data) => {
         break;
 
       case "age":
-        if (typeof value !== "number" || value < 18 || value > 100) {
+        const ageNum = Number(value); // ✅ allow string or number
+        if (isNaN(ageNum) || ageNum < 18 || ageNum > 100) {
           return { error: { message: "Age must be between 18 and 100" } };
+        }
+        break;
+
+      case "photoUrl":
+        if (typeof value !== "string" || !/^https?:\/\/.+/.test(value)) {
+          return { error: { message: "photoUrl must be a valid URL" } };
         }
         break;
 
@@ -321,6 +341,8 @@ const validateProfileEditData = (data) => {
 
   return { error: null };
 };
+
+
 
 
 

@@ -83,6 +83,26 @@ const userSchema = new mongoose.Schema(
       min: [18, "Minimum age must be 18"],
       max: [100, "Maximum age cannot exceed 100"],
     },
+
+    photoUrl: {
+  type: String,
+  default:
+    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png",
+  validate(value) {
+    const isUrl = validator.isURL(value, {
+      require_protocol: true,
+      protocols: ["http", "https"],
+      allow_underscores: true,
+    });
+
+    const isLocalUpload = value.startsWith("http://localhost") || value.startsWith("https://yourdomain.com");
+
+    if (!isUrl && !isLocalUpload) {
+      throw new Error("photoUrl is not a valid URL");
+    }
+  },
+},
+
   },
   { timestamps: true }
 );
