@@ -1,16 +1,13 @@
-// server.js (or app.js)
+// app.js
 const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
 const cookieParser = require("cookie-parser");
-require('dotenv').config();
+require("dotenv").config();
 
 app.use(
   require("cors")({
-    origin: [
-      "http://localhost:5173", // dev frontend (vite)
-      // add your deployed FE domain in production e.g. "https://your-fe.com"
-    ],
+    origin: ["http://localhost:5173"], // frontend dev
     credentials: true,
   })
 );
@@ -36,12 +33,17 @@ app.use("/cultivation", cultivationRouter);
 
 const profileRouter = require("./routes/profileRouter");
 app.use("/profile", profileRouter);
-// ... other routers
+
+// ✅ new sensor router
+const sensorRouter = require("./routes/sensorRouter");
+app.use("/sensor", sensorRouter);
 
 const PORT = process.env.PORT || 2713;
 connectDB()
   .then(() => {
     console.log("Database connected");
-    app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+    app.listen(PORT, "0.0.0.0", () =>
+      console.log(`Server listening on ${PORT}`)
+    );
   })
   .catch((err) => console.error("DB connection failed:", err));
