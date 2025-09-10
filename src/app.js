@@ -9,7 +9,7 @@ app.use(
   require("cors")({
     origin: [
       "http://localhost:5173", // dev frontend (vite)
-      // add your deployed FE domain in production e.g. "https://your-fe.com"
+      "https://www.khetmitra.live/"
     ],
     credentials: true,
   })
