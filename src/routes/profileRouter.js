@@ -1,6 +1,7 @@
 const express = require("express");
 const profileRouter = express.Router();
 const User = require("../models/user");
+require('dotenv').config();
 const { userAuth } = require("../middlewares/auth");
 const { validateProfileEditData } = require("../utils/validation");
 
@@ -8,6 +9,8 @@ const { validateProfileEditData } = require("../utils/validation");
 const multer = require("multer");
 const { storage } = require("../utils/cloudinary");
 const upload = multer({ storage });
+
+const adminEmail = process.env.ADMIN_EMAIL;
 
 // =======================
 // ✅ Get profile API
@@ -19,7 +22,12 @@ profileRouter.get("/view", userAuth, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json(user);
+     const isAdmin = user.emailId === adminEmail;
+
+    res.status(200).json({
+      ...user.toObject(), // spread user fields
+      isAdmin             // add flag inside same object
+    });
   } catch (err) {
     console.error("❌ View Profile Error:", err);
     res.status(500).json({ message: "Error fetching profile" });
