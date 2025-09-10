@@ -9,7 +9,7 @@ app.use(
   require("cors")({
     origin: [
       "http://localhost:5173", // dev frontend (vite)
-      "https://www.khetmitra.live"
+      "https://www.khetmitra.live", // production frontend
     ],
     credentials: true,
   })
@@ -37,9 +37,12 @@ app.use("/cultivation", cultivationRouter);
 const profileRouter = require("./routes/profileRouter");
 app.use("/profile", profileRouter);
 
-// ✅ new sensor router
 const sensorRouter = require("./routes/sensorRouter");
 app.use("/sensor", sensorRouter);
+
+// ✅ new biometric router
+const biometricRouter = require("./routes/biometricRouter");
+app.use("/api", biometricRouter);
 
 const PORT = process.env.PORT || 2713;
 connectDB()

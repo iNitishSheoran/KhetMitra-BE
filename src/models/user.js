@@ -1,9 +1,8 @@
-// models/user.js
 const mongoose = require("mongoose");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-require('dotenv').config();
+require("dotenv").config();
 
 const userSchema = new mongoose.Schema(
   {
@@ -21,8 +20,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       validate: {
         validator: function (value) {
-          // ✅ Indian phone number validation: 10 digits, no country code
-          return /^[6-9]\d{9}$/.test(value);
+          return /^[6-9]\d{9}$/.test(value); // ✅ Indian phone validation
         },
         message: "Invalid phone number format",
       },
@@ -42,15 +40,15 @@ const userSchema = new mongoose.Schema(
       },
     },
 
-     password: {
-    type: String,
-    required: true,
-    validate(value) {
-      if (!validator.isStrongPassword(value)) {
-        throw new Error("Enter a strong passwordddddd");
-      }
+    password: {
+      type: String,
+      required: true,
+      validate(value) {
+        if (!validator.isStrongPassword(value)) {
+          throw new Error("Enter a strong password");
+        }
+      },
     },
-  },
 
     state: {
       type: String,
@@ -85,24 +83,32 @@ const userSchema = new mongoose.Schema(
     },
 
     photoUrl: {
-  type: String,
-  default:
-    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png",
-  validate(value) {
-    const isUrl = validator.isURL(value, {
-      require_protocol: true,
-      protocols: ["http", "https"],
-      allow_underscores: true,
-    });
+      type: String,
+      default:
+        "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png",
+      validate(value) {
+        const isUrl = validator.isURL(value, {
+          require_protocol: true,
+          protocols: ["http", "https"],
+          allow_underscores: true,
+        });
+        const isLocalUpload =
+          value.startsWith("http://localhost") ||
+          value.startsWith("https://yourdomain.com");
 
-    const isLocalUpload = value.startsWith("http://localhost") || value.startsWith("https://yourdomain.com");
+        if (!isUrl && !isLocalUpload) {
+          throw new Error("photoUrl is not a valid URL");
+        }
+      },
+    },
 
-    if (!isUrl && !isLocalUpload) {
-      throw new Error("photoUrl is not a valid URL");
-    }
-  },
-},
-
+    // 🔹 Biometric data fields
+    biometric: {
+      used: { type: Boolean, default: false },
+      sensorModel: String,
+      sensorTemplateId: Number,
+      enrolledAt: { type: Date },
+    },
   },
   { timestamps: true }
 );
@@ -113,17 +119,15 @@ userSchema.index({ state: 1, district: 1, crops: 1 });
 // JWT generation
 userSchema.methods.getJWT = function () {
   const user = this;
-  const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
-  return token;
 };
 
 // Password check
 userSchema.methods.validatePassword = async function (passwordInputByUser) {
   const user = this;
-  const isPasswordValid = await bcrypt.compare(passwordInputByUser, user.password);
-  return isPasswordValid;
+  return await bcrypt.compare(passwordInputByUser, user.password);
 };
 
 const User = mongoose.model("User", userSchema);
