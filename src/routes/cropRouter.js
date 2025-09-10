@@ -38,7 +38,7 @@ cropRouter.post("/add", userAuth, isAdmin, async (req, res) => {
 
 
 // ✅ Get All Crops (names only) → for dropdown, only logged in users
-cropRouter.get("/all", userAuth, async (req, res) => {
+cropRouter.get("/all", async (req, res) => {
   try {
     const crops = await Crop.find({}, "name").sort({ name: 1 });
     return res.json({
@@ -55,7 +55,7 @@ cropRouter.get("/all", userAuth, async (req, res) => {
 
 
 // ✅ Get Crop + Cultivation details together
-cropRouter.get("/details/:name", userAuth, async (req, res) => {
+cropRouter.get("/details/:name", async (req, res) => {
   try {
     const cropName = decodeURIComponent(req.params.name).trim();
 
@@ -88,7 +88,7 @@ cropRouter.get("/details/:name", userAuth, async (req, res) => {
 
 
 // ✅ Get Crop by Name → only logged in users
-cropRouter.get("/:name", userAuth, async (req, res) => {
+cropRouter.get("/:name", async (req, res) => {
   try {
     const cropName = req.params.name.trim();
     const crop = await Crop.findOne({ name: new RegExp(`^${cropName}$`, "i") });

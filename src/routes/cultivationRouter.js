@@ -38,7 +38,7 @@ cultivationRouter.post("/add", userAuth, isAdmin, async (req, res) => {
 });
 
 // Get all crop names (for dropdown)
-cultivationRouter.get("/names", userAuth, async (req, res) => {
+cultivationRouter.get("/names", async (req, res) => {
   try {
     const crops = await Cultivation.find({}, "name_hi name_en").sort({ name_en: 1 });
     return res.json({ success: true, crops });
@@ -48,7 +48,7 @@ cultivationRouter.get("/names", userAuth, async (req, res) => {
 });
 
 // Get cultivation details by crop name (Hindi or English)
-cultivationRouter.get("/:name", userAuth, async (req, res) => {
+cultivationRouter.get("/:name", async (req, res) => {
   try {
     const cropName = decodeURIComponent(req.params.name).trim();
 
