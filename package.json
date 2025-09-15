@@ -1,7 +1,7 @@
 {
   "name": "khetmitra-be",
   "version": "1.0.0",
-  "description": "��#\u0000 \u0000K\u0000h\u0000e\u0000t\u0000M\u0000i\u0000t\u0000r\u0000a\u0000-\u0000B\u0000E\u0000\r\u0000 \u0000",
+  "description": "KhetMitra Backend API",
   "main": "index.js",
   "scripts": {
     "test": "test",
