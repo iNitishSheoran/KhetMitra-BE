@@ -1,52 +1,30 @@
-// app.js
-const express = require("express");
-const connectDB = require("./config/database");
+import express from "express";
+import mongoose from "mongoose";
+import sensorRouter from "./routes/sensorRouter.js";
+
 const app = express();
-const cookieParser = require("cookie-parser");
-require("dotenv").config();
 
-app.use(
-  require("cors")({
-    origin: [
-      "http://localhost:5173", // dev frontend (vite)
-      "https://www.khetmitra.live"
-    ],
-    credentials: true,
-  })
-);
-
-app.use(cookieParser());
+// ✅ Middleware
 app.use(express.json());
 
-// routes
-const authRouter = require("./routes/authRouter");
-app.use("/", authRouter);
+// ✅ MongoDB connect
+mongoose.connect("mongodb://127.0.0.1:27017/sensors", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+mongoose.connection.on("connected", () => {
+  console.log("✅ Database connected");
+});
+mongoose.connection.on("error", (err) => {
+  console.error("❌ Database error:", err);
+});
 
-const authCheckRouter = require("./routes/authCheckRouter");
-app.use("/auth", authCheckRouter);
-
-const helpRouter = require("./routes/helpRouter");
-app.use("/help", helpRouter);
-
-const cropRouter = require("./routes/cropRouter");
-app.use("/crop", cropRouter);
-
-const cultivationRouter = require("./routes/cultivationRouter");
-app.use("/cultivation", cultivationRouter);
-
-const profileRouter = require("./routes/profileRouter");
-app.use("/profile", profileRouter);
-
-// ✅ new sensor router
-const sensorRouter = require("./routes/sensorRouter");
+// ✅ Routes
 app.use("/sensor", sensorRouter);
 
-const PORT = process.env.PORT || 2713;
-connectDB()
-  .then(() => {
-    console.log("Database connected");
-    app.listen(PORT, "0.0.0.0", () =>
-      console.log(`Server listening on ${PORT}`)
-    );
-  })
-  .catch((err) => console.error("DB connection failed:", err));
+const PORT = 2713;
+app.listen(PORT, () => {
+  console.log(`🚀 Server listening on ${PORT}`);
+});
+
+export default app;
