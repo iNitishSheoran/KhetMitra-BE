@@ -3,6 +3,7 @@ import Sensor from "../models/Sensor.js";
 
 const router = express.Router();
 
+// ✅ Save sensor data (ESP से आता है)
 router.post("/", async (req, res) => {
   try {
     const data = {
@@ -30,6 +31,20 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.error("❌ Error saving sensor data:", err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ✅ Get latest sensor data (Frontend के लिए)
+router.get("/latest", async (req, res) => {
+  try {
+    const latest = await Sensor.findOne().sort({ createdAt: -1 }); // ✅ latest doc
+    if (!latest) {
+      return res.json({ success: false, message: "No data found" });
+    }
+    res.json({ success: true, data: latest });
+  } catch (err) {
+    console.error("❌ Error fetching latest sensor data:", err);
+    res.status(500).json({ success: false, error: "Server error" });
   }
 });
 
