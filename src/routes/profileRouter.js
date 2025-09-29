@@ -22,11 +22,11 @@ profileRouter.get("/view", userAuth, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-     const isAdmin = user.emailId === adminEmail;
+    const isAdmin = user.emailId === adminEmail;
 
     res.status(200).json({
-      ...user.toObject(), // spread user fields
-      isAdmin             // add flag inside same object
+      ...user.toObject(),
+      isAdmin
     });
   } catch (err) {
     console.error("❌ View Profile Error:", err);
@@ -37,7 +37,6 @@ profileRouter.get("/view", userAuth, async (req, res) => {
 // =======================
 // ✅ Edit profile API (with optional profile photo upload)
 // =======================
-// ✅ Edit profile API (with optional profile photo upload)
 profileRouter.patch(
   "/edit",
   userAuth,
@@ -59,6 +58,14 @@ profileRouter.patch(
       // ✅ Convert crops to array if string
       if (updates.crops && typeof updates.crops === "string") {
         updates.crops = updates.crops
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
+      }
+
+      // ✅ Convert cropHistory to array if string
+      if (updates.cropHistory && typeof updates.cropHistory === "string") {
+        updates.cropHistory = updates.cropHistory
           .split(",")
           .map((c) => c.trim())
           .filter(Boolean);
@@ -91,7 +98,6 @@ profileRouter.patch(
     }
   }
 );
-
 
 // =======================
 // ✅ Delete profile API

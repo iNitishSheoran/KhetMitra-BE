@@ -23,7 +23,7 @@ authRouter.post("/signup", async (req, res) => {
   try {
     validateSignUpData(req);
 
-    const { fullName, phoneNumber, emailId, password, state, district, crops, age } = req.body;
+    const { fullName, phoneNumber, emailId, password, state, district, crops, age, cropHistory } = req.body;
 
     // ✅ Hash password
     const passwordHash = await bcrypt.hash(password, 10);
@@ -37,6 +37,7 @@ authRouter.post("/signup", async (req, res) => {
       district,
       crops,
       age,
+      cropHistory
     });
 
     const savedUser = await user.save();
@@ -56,6 +57,7 @@ authRouter.post("/signup", async (req, res) => {
         district: savedUser.district,
         crops: savedUser.crops,
         age: savedUser.age,
+        cropHistory:savedUser.cropHistory
       },
     });
   } catch (err) {
@@ -90,6 +92,7 @@ authRouter.post("/login", async (req, res) => {
         district: user.district,
         crops: user.crops,
         age: user.age,
+        cropHistory: user.cropHistory
       },
     });
   } catch (err) {
